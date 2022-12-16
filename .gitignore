@@ -3,3 +3,4 @@
 !*.scala
 !graph_data.csv
 !.gitignore
+!README.md

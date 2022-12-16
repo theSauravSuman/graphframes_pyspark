@@ -1,0 +1,2 @@
+# Graph Eigenvector Centrality on PySpark
+This implementation computes an eigenvector score for all nodes in the graph provided. A graph can be provided to the class as a Spark DataFrame which contains "source" and "target" nodes. This implementations currently only supports Undirected and Unweighted Graph. Future work includes adding direction and weight along with Betweenness Centrality. 
