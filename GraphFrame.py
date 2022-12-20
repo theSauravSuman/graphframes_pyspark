@@ -6,16 +6,17 @@ from pyspark.storagelevel import StorageLevel
 
 class GraphFrame(object):
 
-    def __init__(self, edges: DataFrame, clean_edges: bool = True, type: str = "undirected", weighted: bool = False, defaultWeight: int = 1, storageLevel: StorageLevel = StorageLevel.MEMORY_AND_DISK) -> None:
+    def __init__(self, edges: DataFrame, clean_edges: bool = True, directed: bool = False, weighted: bool = False, defaultWeight: int = 1, storageLevel: StorageLevel = StorageLevel.MEMORY_AND_DISK) -> None:
         self.sparkSession = edges.sparkSession
         self.sc = self.sparkSession.sparkContext
-        self.type = type
+        self.directed = directed
         self.weighted = weighted
         self.defaultWeight = defaultWeight
         self.graph = edges
         self.storageLevel = storageLevel
         if self.weighted and "weight" not in self.graph.columns:
-            self.graph = self.graph.withColumn("weight", 1)
+            print("Weighted mode is True but 'weight' column not found. Defaulting weight value to 1")
+            self.graph = self.graph.withColumn("weight", py_fn.lit(1.0))
         if clean_edges:
             self.clean_edges()
         self.nodes = self.graph.select(py_fn.col("source").alias("node")).union(self.graph.select("target")).distinct()
@@ -24,7 +25,7 @@ class GraphFrame(object):
 
     def clean_edges(self):
         """Utility Function to clean the graph edges with nulls and remove repeated edges. To be used only with Undirected type Graph"""
-        if self.type == "undirected":
+        if not self.directed:
             split_pattern = "##"
             self.graph = self.graph.where(self.graph.source.isNotNull()).where(self.graph.target.isNotNull())
             self.graph = self.graph.na.fill(value = self.defaultWeight, subset=["weight"])
